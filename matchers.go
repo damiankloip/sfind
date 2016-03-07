@@ -25,6 +25,17 @@ func (m RegexMatcher) match(path string) (bool, error) {
   return (match != m.invert), err
 }
 
+func newRegexMatcher(pattern string, invert bool, insensitive bool) RegexMatcher {
+  // If this is case-insensitive, prepend '(?i)' to the regex. Likely NOT the
+  // best way to do this!
+  if insensitive {
+    // This assignment is not ideal, but easy.
+    prefix := "(?i)"
+    pattern = prefix + pattern
+  }
+  return RegexMatcher{BaseMatcher{pattern, invert, insensitive}}
+}
+
 type FilepathMatcher struct {
   BaseMatcher
 }

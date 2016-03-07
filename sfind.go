@@ -63,7 +63,7 @@ func main() {
     insensitive := c.Bool("insensitive")
 
     if c.Bool("ext") {
-      matcher = RegexMatcher{BaseMatcher{pattern, invert, insensitive}}
+      matcher = newRegexMatcher(pattern, invert, insensitive)
     } else {
       matcher = FilepathMatcher{BaseMatcher{pattern, invert, insensitive}}
     }
