@@ -9,8 +9,10 @@ import (
 
 func main() {
   app := cli.NewApp()
-  app.Name = "Simple Find"
+  app.Name = "SFind"
   app.Version = "0.0.1"
+  app.Usage = "A simple find tool"
+  app.UsageText = "sfind [options] [PATH] PATTERN"
 
   app.Flags = []cli.Flag {
     cli.BoolFlag {
