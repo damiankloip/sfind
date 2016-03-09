@@ -17,7 +17,8 @@ func (r *PrintResult) beforeResults() {
 }
 
 func (r *PrintResult) eachResult(matched string) {
-  fmt.Println(matched)
+  // Add a null byte to the end of each match string.
+  fmt.Println(matched + "\x00")
 }
 
 func (r *PrintResult) afterResults() {
