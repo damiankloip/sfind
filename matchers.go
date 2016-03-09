@@ -49,3 +49,7 @@ func (m FilepathMatcher) match(path string) (bool, error) {
   match, err := filepath.Match(m.pattern, path)
   return (match != m.invert), err
 }
+
+func newFilepathMatcher(pattern string, invert bool, insensitive bool) FilepathMatcher {
+  return FilepathMatcher{BaseMatcher{pattern, invert, insensitive}}
+}

@@ -106,3 +106,51 @@ func outputResults(base_path string, result Result, matcher FileMatcher) {
     fmt.Println(err)
   }
 }
+
+func determineArgs(c *cli.Context) (string, string) {
+  var base_path, pattern string
+  var err error
+  args := c.Args()
+  length := c.NArg();
+
+  switch {
+    case length == 0:
+      fmt.Println("No arguments provided")
+      os.Exit(1)
+    case length == 1:
+      // Assume the single argument is a pattern. Default root to cwd.
+      base_path, err = os.Getwd()
+
+      if err != nil {
+          fmt.Println(err)
+          os.Exit(1)
+      }
+
+      pattern = args.First()
+    case length > 1:
+      // Assume path will be the first arg, and pattern the second.
+      base_path = args.First()
+      pattern = args.Get(1)
+  }
+
+  return base_path, pattern
+}
+
+func createMatcher(pattern string, c *cli.Context) FileMatcher {
+  invert := c.Bool("invert")
+  insensitive := c.Bool("insensitive")
+
+  if c.Bool("ext") {
+    return newRegexMatcher(pattern, invert, insensitive)
+  }
+
+  return newFilepathMatcher(pattern, invert, insensitive)
+}
+
+func createResult(c *cli.Context) Result {
+  if c.Bool("count") {
+    return &CountResult{}
+  }
+
+  return &PrintResult{}
+}
