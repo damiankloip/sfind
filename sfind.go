@@ -95,29 +95,31 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 }
 
 func determineArgs(c *cli.Context) (string, string) {
-  var base_path, pattern string
+  var base_path string
   var err error
+
+  pattern := "*"
   args := c.Args()
   length := c.NArg();
 
   switch {
-    case length == 0:
-      fmt.Println("No arguments provided")
-      os.Exit(1)
     case length == 1:
-      // Assume the single argument is a pattern. Default root to cwd.
-      base_path, err = os.Getwd()
-
-      if err != nil {
-          fmt.Println(err)
-          os.Exit(1)
-      }
-
       pattern = args.First()
     case length > 1:
       // Assume path will be the first arg, and pattern the second.
       base_path = args.First()
       pattern = args.Get(1)
+  }
+
+  // If the base path is still empty, get the cwd.
+  if base_path == "" {
+    // Default root to cwd.
+    base_path, err = os.Getwd()
+
+    if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+    }
   }
 
   return base_path, pattern
