@@ -95,10 +95,9 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 }
 
 func determineArgs(c *cli.Context) (string, string) {
-  var base_path string
+  var base_path, pattern string
   var err error
 
-  pattern := "*"
   args := c.Args()
   length := c.NArg();
 
