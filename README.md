@@ -43,6 +43,9 @@ Find all YAML files from the current directory
 ```
 sfind '*.yml'
 ```
+```
+sfind -e '.*\.ya?ml'
+```
 
 Find all YAML files from the ''/test' directory
 
