@@ -4,6 +4,7 @@
    sfind [options] [PATH] PATTERN
 
 ### Options:
+```
    --count, -c		Return a count of matches
    --ext, -e		Use extended regex patterns
    --invert, -i		Only return items that don't match PATTERN
@@ -12,3 +13,4 @@
    --dirs-only, -D	Only match directories
    --help, -h		show help
    --version, -v	print the version
+```
