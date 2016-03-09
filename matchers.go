@@ -12,7 +12,6 @@ type FileMatcher interface {
 
 type BaseMatcher struct {
   pattern string
-  invert bool
   insensitive bool
 }
 
@@ -22,10 +21,10 @@ type RegexMatcher struct {
 
 func (m RegexMatcher) match(path string) (bool, error) {
   match, err := regexp.MatchString(m.pattern, path)
-  return (match != m.invert), err
+  return match, err
 }
 
-func newRegexMatcher(pattern string, invert bool, insensitive bool) RegexMatcher {
+func newRegexMatcher(pattern string, insensitive bool) RegexMatcher {
   // If the pattern is empty, assume everything.
   if pattern == "" {
     pattern = "\\.*"
@@ -38,7 +37,8 @@ func newRegexMatcher(pattern string, invert bool, insensitive bool) RegexMatcher
     prefix := "(?i)"
     pattern = prefix + pattern
   }
-  return RegexMatcher{BaseMatcher{pattern, invert, insensitive}}
+
+  return RegexMatcher{BaseMatcher{pattern, insensitive}}
 }
 
 type FilepathMatcher struct {
@@ -52,14 +52,14 @@ func (m FilepathMatcher) match(path string) (bool, error) {
   }
 
   match, err := filepath.Match(m.pattern, path)
-  return (match != m.invert), err
+  return match, err
 }
 
-func newFilepathMatcher(pattern string, invert bool, insensitive bool) FilepathMatcher {
+func newFilepathMatcher(pattern string, insensitive bool) FilepathMatcher {
   // If the pattern is empty, assume everything.
   if pattern == "" {
     pattern = "*"
   }
 
-  return FilepathMatcher{BaseMatcher{pattern, invert, insensitive}}
+  return FilepathMatcher{BaseMatcher{pattern, insensitive}}
 }

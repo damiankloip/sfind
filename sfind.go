@@ -53,6 +53,7 @@ func main() {
 }
 
 func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.Context) {
+  invert := c.Bool("invert")
   include_dirs := c.Bool("include-dirs")
   dirs_only := c.Bool("dirs-only")
   // Small shortcut to skip dir checks early.
@@ -79,7 +80,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 
     matched, _ := matcher.match(filepath.Base(path))
 
-    if matched {
+    if matched != invert {
       result.eachResult(path)
     }
 
@@ -125,14 +126,13 @@ func determineArgs(c *cli.Context) (string, string) {
 }
 
 func createMatcher(pattern string, c *cli.Context) FileMatcher {
-  invert := c.Bool("invert")
   insensitive := c.Bool("insensitive")
 
   if c.Bool("ext") {
-    return newRegexMatcher(pattern, invert, insensitive)
+    return newRegexMatcher(pattern, insensitive)
   }
 
-  return newFilepathMatcher(pattern, invert, insensitive)
+  return newFilepathMatcher(pattern, insensitive)
 }
 
 func createResult(c *cli.Context) Result {
