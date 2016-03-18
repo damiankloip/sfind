@@ -1,13 +1,15 @@
 package main
 
 import (
+  "fmt"
+  "os"
   "regexp"
   "path/filepath"
   "strings"
 )
 
 type FileMatcher interface {
-  match(path string) (bool, error)
+  match(path string) (bool)
 }
 
 type BaseMatcher struct {
@@ -16,12 +18,12 @@ type BaseMatcher struct {
 }
 
 type RegexMatcher struct {
+  regexp *regexp.Regexp
   BaseMatcher
 }
 
-func (m RegexMatcher) match(path string) (bool, error) {
-  match, err := regexp.MatchString(m.pattern, path)
-  return match, err
+func (m RegexMatcher) match(path string) (bool) {
+  return m.regexp.MatchString(path)
 }
 
 func newRegexMatcher(pattern string, insensitive bool) RegexMatcher {
@@ -38,21 +40,28 @@ func newRegexMatcher(pattern string, insensitive bool) RegexMatcher {
     pattern = prefix + pattern
   }
 
-  return RegexMatcher{BaseMatcher{pattern, insensitive}}
+  regexp, err := regexp.Compile(pattern)
+
+  if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+  }
+
+  return RegexMatcher{regexp, BaseMatcher{pattern, insensitive}}
 }
 
 type FilepathMatcher struct {
   BaseMatcher
 }
 
-func (m FilepathMatcher) match(path string) (bool, error) {
+func (m FilepathMatcher) match(path string) (bool) {
   // Poor man's case insensitivity.
   if m.insensitive {
     path = strings.ToLower(path)
   }
 
-  match, err := filepath.Match(m.pattern, path)
-  return match, err
+  match, _ := filepath.Match(m.pattern, path)
+  return match
 }
 
 func newFilepathMatcher(pattern string, insensitive bool) FilepathMatcher {

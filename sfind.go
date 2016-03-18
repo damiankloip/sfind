@@ -62,7 +62,12 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   // Allow the result to print something before files are walked.
   result.beforeResults()
 
-  err := filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, _ error) error {
+  err := filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, err error) error {
+    if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+    }
+
     is_dir := fileInfo.IsDir();
 
     // Determine how to deal with dirs based on any flags.
@@ -78,7 +83,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
       return nil
     }
 
-    matched, _ := matcher.match(filepath.Base(path))
+    matched := matcher.match(filepath.Base(path))
 
     if matched != invert {
       result.eachResult(path)
