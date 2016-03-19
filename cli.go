@@ -107,7 +107,7 @@ func createMatcher(pattern string, c *cli.Context) FileMatcher {
 
   insensitive := c.Bool("insensitive")
 
-  if c.Bool("ext") {
+  if c.Bool("ext") || c.Bool("full-path") {
     return newRegexMatcher(pattern, insensitive)
   }
 

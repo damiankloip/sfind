@@ -39,7 +39,7 @@ func main() {
     },
     cli.BoolFlag {
       Name: "full-path, f",
-      Usage: "Match PATTERN again the full file (or directory) path",
+      Usage: "Match PATTERN again the full file (or directory) path. Ext option is implied.",
     },
   }
 
