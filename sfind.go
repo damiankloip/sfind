@@ -37,6 +37,10 @@ func main() {
       Name: "dirs-only, D",
       Usage: "Only match directories",
     },
+    cli.BoolFlag {
+      Name: "full-path, f",
+      Usage: "Match PATTERN again the full file (or directory) path",
+    },
   }
 
   app.Action = func(c *cli.Context) {

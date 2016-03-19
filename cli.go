@@ -10,6 +10,9 @@ import (
 // Main worker for iterating files.
 func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.Context) {
   invert := c.Bool("invert")
+  full_path_match := c.Bool("full-path")
+  var match_path string
+
   include_dirs := c.Bool("include-dirs")
   dirs_only := c.Bool("dirs-only")
   // Small shortcut to skip dir checks early.
@@ -39,7 +42,15 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
       return nil
     }
 
-    matched := matcher.match(filepath.Base(path))
+    // If this is a full path match use the path as-is. Otherwise use the file
+    // name only (default).
+    if full_path_match {
+      match_path = path
+    } else {
+      match_path = filepath.Base(path);
+    }
+
+    matched := matcher.match(match_path)
 
     if matched != invert {
       result.eachResult(path)
