@@ -100,6 +100,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   }
 }
 
+// Determine the base path and pattern for searching based on args.
 func determineArgs(c *cli.Context) (string, string) {
   var base_path, pattern string
   var err error
@@ -130,7 +131,13 @@ func determineArgs(c *cli.Context) (string, string) {
   return base_path, pattern
 }
 
+// Choose an appropriate matcher.
+// Based on whether the pattern is empty, or extended regex is needed.
 func createMatcher(pattern string, c *cli.Context) FileMatcher {
+  if pattern == "" {
+    return newEmptyMatcher()
+  }
+
   insensitive := c.Bool("insensitive")
 
   if c.Bool("ext") {
@@ -140,6 +147,8 @@ func createMatcher(pattern string, c *cli.Context) FileMatcher {
   return newFilepathMatcher(pattern, insensitive)
 }
 
+// Choose an appropriate result.
+// This is based on whether or not a count is needed.
 func createResult(c *cli.Context) Result {
   if c.Bool("count") {
     return &CountResult{}

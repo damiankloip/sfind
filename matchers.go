@@ -27,11 +27,6 @@ func (m RegexMatcher) match(path string) (bool) {
 }
 
 func newRegexMatcher(pattern string, insensitive bool) RegexMatcher {
-  // If the pattern is empty, assume everything.
-  if pattern == "" {
-    pattern = "\\.*"
-  }
-
   // If this is case-insensitive, prepend '(?i)' to the regex. Likely NOT the
   // best way to do this!
   if insensitive {
@@ -65,10 +60,16 @@ func (m FilepathMatcher) match(path string) (bool) {
 }
 
 func newFilepathMatcher(pattern string, insensitive bool) FilepathMatcher {
-  // If the pattern is empty, assume everything.
-  if pattern == "" {
-    pattern = "*"
-  }
-
   return FilepathMatcher{BaseMatcher{pattern, insensitive}}
+}
+
+// An empty matcher always returns true. This is selected when pattern is empty.
+type EmptyMatcher struct {}
+
+func (m EmptyMatcher) match(path string) (bool) {
+  return true;
+}
+
+func newEmptyMatcher() EmptyMatcher {
+  return EmptyMatcher{}
 }
