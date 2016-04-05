@@ -2,6 +2,7 @@ package main
 
 import (
   "fmt"
+  "sync"
 )
 
 type Result interface {
@@ -26,6 +27,7 @@ func (r *PrintResult) afterResults() {
 }
 
 type CountResult struct {
+  mutex *sync.Mutex
   count int
 }
 
@@ -35,7 +37,9 @@ func (r *CountResult) beforeResults() {
 
 func (r *CountResult) eachResult(matched string) {
   // Increment the matched results by one.
+  r.mutex.Lock()
   r.count += 1
+  r.mutex.Unlock()
 }
 
 func (r *CountResult) afterResults() {

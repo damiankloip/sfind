@@ -4,8 +4,14 @@ import (
   "os"
   "fmt"
   "path/filepath"
+  "sync"
   "github.com/codegangsta/cli"
 )
+
+type FileData struct {
+  Path string
+  Info os.FileInfo
+}
 
 // Main worker for iterating files.
 func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.Context) {
@@ -21,50 +27,81 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   // Allow the result to print something before files are walked.
   result.beforeResults()
 
-  err := filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, err error) error {
-    if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
-    }
+  var numWorkers int = 8
 
-    is_dir := fileInfo.IsDir();
+  path_channel, err := func () (chan FileData, error) {
+    channel := make(chan FileData)
+    var err error
 
-    // Determine how to deal with dirs based on any flags.
-    if (no_dir_filters && is_dir) {
-      // If there are no dir filters and this is dir, return. Otherwise, this
-      // will try to use the matcher below. By default, dirs are not included in
-      // results.
-      return nil
-    // This means there are dir filters, so check against them. Don't check
-    // include_dirs as if it hasn't been caught above (no_dir_filters) we want
-    // everything to go to below matching.
-    } else if (!is_dir && dirs_only) {
-      return nil
-    }
+    go func() {
+      err = filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, file_err error) error {
+        if file_err != nil {
+            fmt.Println(err)
+            os.Exit(1)
+        }
 
-    // If this is a full path match use the path as-is. Otherwise use the file
-    // name only (default).
-    if full_path_match {
-      match_path = path
-    } else {
-      match_path = filepath.Base(path);
-    }
+        channel <- FileData{path, fileInfo}
+        return file_err
+      })
 
-    matched := matcher.match(match_path)
+      close(channel)
 
-    if matched != invert {
-      result.eachResult(path)
-    }
+      return
+    }()
 
-    return nil
-  })
-
-  // Allow the result to print something after the files have been walked.
-  result.afterResults()
+    return channel, err
+  }()
 
   if err != nil {
     fmt.Println(err)
   }
+
+  var wg sync.WaitGroup
+
+  for workers := 0; workers < numWorkers; workers++ {
+    wg.Add(1)
+
+    go func() error {
+      defer wg.Done()
+      for fileData := range path_channel {
+        path := fileData.Path
+        is_dir := fileData.Info.IsDir()
+
+        // Determine how to deal with dirs based on any flags.
+        if (no_dir_filters && is_dir) {
+          // If there are no dir filters and this is dir, return. Otherwise, this
+          // will try to use the matcher below. By default, dirs are not included in
+          // results.
+          continue
+        // This means there are dir filters, so check against them. Don't check
+        // include_dirs as if it hasn't been caught above (no_dir_filters) we want
+        // everything to go to below matching.
+        } else if (!is_dir && dirs_only) {
+          continue
+        }
+
+        // If this is a full path match use the path as-is. Otherwise use the file
+        // name only (default).
+        if full_path_match {
+          match_path = path
+        } else {
+          match_path = filepath.Base(path);
+        }
+
+        matched := matcher.match(match_path)
+
+        if matched != invert {
+          result.eachResult(path)
+        }
+      }
+
+      return nil
+    }()
+  }
+
+  wg.Wait()
+  // Allow the result to print something after the files have been walked.
+  result.afterResults()
 }
 
 // Determine the base path and pattern for searching based on args.
@@ -118,7 +155,7 @@ func createMatcher(pattern string, c *cli.Context) FileMatcher {
 // This is based on whether or not a count is needed.
 func createResult(c *cli.Context) Result {
   if c.Bool("count") {
-    return &CountResult{}
+    return &CountResult{mutex: &sync.Mutex{}}
   }
 
   return &PrintResult{}
