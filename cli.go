@@ -29,11 +29,23 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 
   var numWorkers int = 8
 
-  path_channel, err := func () (chan FileData, error) {
+  path_channel := func () (chan FileData) {
     channel := make(chan FileData)
-    var err error
 
     go func() {
+      // Check if the dir exists and is a dir.
+      dirInfo, err := os.Stat(base_path);
+
+      if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+      }
+
+      if !dirInfo.IsDir() {
+        fmt.Printf("%s is not a directory\n", base_path)
+        os.Exit(1)
+      }
+
       err = filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, file_err error) error {
         if file_err != nil {
             fmt.Println(err)
@@ -44,17 +56,17 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
         return file_err
       })
 
-      close(channel)
+      if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+      }
 
+      close(channel)
       return
     }()
 
-    return channel, err
+    return channel
   }()
-
-  if err != nil {
-    fmt.Println(err)
-  }
 
   var wg sync.WaitGroup
 
