@@ -6,6 +6,7 @@ import (
   "path/filepath"
   "sync"
   "github.com/codegangsta/cli"
+  "runtime"
 )
 
 type FileData struct {
@@ -27,7 +28,8 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   // Allow the result to print something before files are walked.
   result.beforeResults()
 
-  var numWorkers int = 8
+  numCPUs := runtime.NumCPU()
+  runtime.GOMAXPROCS(numCPUs)
 
   path_channel := func () (chan FileData) {
     channel := make(chan FileData)
@@ -56,12 +58,13 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
         return file_err
       })
 
+      close(channel)
+
       if err != nil {
         fmt.Println(err)
         os.Exit(1)
       }
 
-      close(channel)
       return
     }()
 
@@ -70,7 +73,8 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 
   var wg sync.WaitGroup
 
-  for workers := 0; workers < numWorkers; workers++ {
+  // Use the amount of CPUs as the size of the worker pool.
+  for workers := 0; workers < numCPUs; workers++ {
     wg.Add(1)
 
     go func() error {
