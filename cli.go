@@ -106,7 +106,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 
 // Determine the base path and pattern for searching based on args.
 func determineArgs(c *cli.Context) (string, string) {
-  var base_path, pattern string
+  var pattern, base_path string
   var err error
 
   args := c.Args()
@@ -116,9 +116,9 @@ func determineArgs(c *cli.Context) (string, string) {
     case length == 1:
       pattern = args.First()
     case length > 1:
-      // Assume path will be the first arg, and pattern the second.
-      base_path = args.First()
-      pattern = args.Get(1)
+      // Assume pattern will be the first arg, and path the second.
+      pattern = args.First()
+      base_path = args.Get(1)
   }
 
   // If the base path is still empty, get the cwd.
@@ -132,13 +132,13 @@ func determineArgs(c *cli.Context) (string, string) {
     }
   }
 
-  return base_path, pattern
+  return pattern, base_path
 }
 
 // Choose an appropriate matcher.
 // Based on whether the pattern is empty, or extended regex is needed.
 func createMatcher(pattern string, c *cli.Context) FileMatcher {
-  if pattern == "" {
+  if ((pattern == "") || pattern == "*") {
     return newEmptyMatcher()
   }
 

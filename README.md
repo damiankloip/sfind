@@ -10,7 +10,7 @@ arguments are provided path, then pattern is assumed. By default sfind will only
 match files but can be used to match directories, or both.
 
 ### Usage:
-   sfind [options] [PATH] [PATTERN]
+   sfind [options] [PATTERN] [PATH]
 
 ### Options:
 ```
@@ -20,6 +20,7 @@ match files but can be used to match directories, or both.
    --insensitive, -I	Case insensitive matches
    --include-dirs, -d	Include directories in matches. This has precedence over 'dirs-only'
    --dirs-only, -D	Only match directories
+   --full-path, -f	Match PATTERN again the full file (or directory) path. Ext option is implied.
    --help, -h		show help
    --version, -v	print the version
 ```
@@ -43,6 +44,9 @@ Find all YAML files from the current directory
 ```
 sfind '*.yml'
 ```
+
+Extended:
+
 ```
 sfind -e '.*\.ya?ml'
 ```
@@ -50,5 +54,11 @@ sfind -e '.*\.ya?ml'
 Find all YAML files from the ''/test' directory
 
 ```
-sfind /test '*.yml'
+sfind '*.yml' /test
+```
+
+Find all file in the /test directory
+
+```
+sfind '*' /test
 ```

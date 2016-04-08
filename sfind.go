@@ -44,7 +44,7 @@ func main() {
   }
 
   app.Action = func(c *cli.Context) {
-    base_path, pattern := determineArgs(c)
+    pattern, base_path := determineArgs(c)
     matcher := createMatcher(pattern, c)
     result := createResult(c)
 
