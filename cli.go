@@ -34,29 +34,8 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   path_channel := func () (chan FileData) {
     channel := make(chan FileData)
 
-    go func() {
-      // Check if the dir exists and is a dir.
-      dirInfo, err := os.Stat(base_path);
-      check_error(err)
-
-      if !dirInfo.IsDir() {
-        fmt.Printf("%s is not a directory\n", base_path)
-        os.Exit(1)
-      }
-
-      err = filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, file_err error) error {
-        check_error(file_err)
-
-        channel <- FileData{path, fileInfo}
-        return file_err
-      })
-
-      close(channel)
-
-      check_error(err)
-
-      return
-    }()
+    // Walks files, pushes results to channel, then closes channel.
+    go walkFiles(base_path, channel)
 
     return channel
   }()
@@ -108,6 +87,30 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   wg.Wait()
   // Allow the result to print something after the files have been walked.
   result.afterResults()
+}
+
+// Walks files, pushes results to channel, then closes channel.
+func walkFiles(base_path string, channel chan<- FileData) {
+  // Check if the dir exists and is a dir.
+  dirInfo, err := os.Stat(base_path);
+  check_error(err)
+
+  if !dirInfo.IsDir() {
+    fmt.Printf("%s is not a directory\n", base_path)
+    os.Exit(1)
+  }
+
+  err = filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, file_err error) error {
+    check_error(file_err)
+
+    channel <- FileData{path, fileInfo}
+    return file_err
+  })
+
+  close(channel)
+  check_error(err)
+
+  return
 }
 
 // Determine the base path and pattern for searching based on args.
