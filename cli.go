@@ -46,8 +46,9 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   for workers := 0; workers < numCPUs; workers++ {
     wg.Add(1)
 
-    go func() error {
+    go func() {
       defer wg.Done()
+
       for fileData := range path_channel {
         path := fileData.Path
         is_dir := fileData.Info.IsDir()
@@ -79,8 +80,6 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
           result.eachResult(path)
         }
       }
-
-      return nil
     }()
   }
 
