@@ -37,11 +37,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
     go func() {
       // Check if the dir exists and is a dir.
       dirInfo, err := os.Stat(base_path);
-
-      if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
-      }
+      check_error(err)
 
       if !dirInfo.IsDir() {
         fmt.Printf("%s is not a directory\n", base_path)
@@ -49,10 +45,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
       }
 
       err = filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, file_err error) error {
-        if file_err != nil {
-            fmt.Println(err)
-            os.Exit(1)
-        }
+        check_error(file_err)
 
         channel <- FileData{path, fileInfo}
         return file_err
@@ -60,10 +53,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
 
       close(channel)
 
-      if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
-      }
+      check_error(err)
 
       return
     }()
@@ -141,11 +131,7 @@ func determineArgs(c *cli.Context) (string, string) {
   if base_path == "" {
     // Default root to cwd.
     base_path, err = os.Getwd()
-
-    if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
-    }
+    check_error(err)
   }
 
   return pattern, base_path
@@ -175,4 +161,12 @@ func createResult(c *cli.Context) Result {
   }
 
   return &PrintResult{}
+}
+
+// Checks and handles errors.
+func check_error(err error) {
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
 }

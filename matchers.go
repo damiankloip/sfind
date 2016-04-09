@@ -1,8 +1,6 @@
 package main
 
 import (
-  "fmt"
-  "os"
   "regexp"
   "path/filepath"
   "strings"
@@ -36,11 +34,7 @@ func newRegexMatcher(pattern string, insensitive bool) RegexMatcher {
   }
 
   regexp, err := regexp.Compile(pattern)
-
-  if err != nil {
-      fmt.Println(err)
-      os.Exit(1)
-  }
+  check_error(err)
 
   return RegexMatcher{regexp, BaseMatcher{pattern, insensitive}}
 }
