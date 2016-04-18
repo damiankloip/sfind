@@ -99,7 +99,19 @@ func walkFiles(base_path string, channel chan<- FileData) {
     os.Exit(1)
   }
 
+  ignoreDirs := []string{".bzr", ".hg", ".git"}
+
   err = filepath.Walk(base_path, func (path string, fileInfo os.FileInfo, file_err error) error {
+    // Before sending to channel filter out VCS dirs.
+    if fileInfo.IsDir() {
+      dirname := fileInfo.Name()
+      for _, d := range ignoreDirs {
+        if d == dirname {
+          return filepath.SkipDir
+        }
+      }
+    }
+
     check_error(file_err)
 
     channel <- FileData{path, fileInfo}
