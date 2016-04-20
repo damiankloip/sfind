@@ -31,14 +31,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   numCPUs := runtime.NumCPU()
   runtime.GOMAXPROCS(numCPUs)
 
-  path_channel := func () (chan FileData) {
-    channel := make(chan FileData)
-
-    // Walks files, pushes results to channel, then closes channel.
-    go walkFiles(base_path, channel)
-
-    return channel
-  }()
+  path_channel := createPathChannel(base_path)
 
   var wg sync.WaitGroup
 
@@ -149,6 +142,17 @@ func determineArgs(c *cli.Context) (string, string) {
   }
 
   return pattern, base_path
+}
+
+// Creates the path channel and starts walking files to add to channel in a go
+// routine.
+func createPathChannel(base_path string) (chan FileData) {
+  channel := make(chan FileData)
+
+  // Walks files, pushes results to channel, then closes channel.
+  go walkFiles(base_path, channel)
+
+  return channel
 }
 
 // Choose an appropriate matcher.
