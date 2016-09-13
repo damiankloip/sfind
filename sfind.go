@@ -41,6 +41,10 @@ func main() {
       Name: "full-path, f",
       Usage: "Match PATTERN again the full file (or directory) path. Ext option is implied.",
     },
+    cli.StringFlag{
+      Name:  "type, t",
+      Usage: "The file type/extension to additionally filter by",
+    },
   }
 
   app.Action = func(c *cli.Context) {

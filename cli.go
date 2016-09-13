@@ -3,7 +3,9 @@ package main
 import (
   "os"
   "fmt"
+  "path"
   "path/filepath"
+  "strings"
   "sync"
   "github.com/codegangsta/cli"
   "runtime"
@@ -24,6 +26,8 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
   dirs_only := c.Bool("dirs-only")
   // Small shortcut to skip dir checks early.
   no_dir_filters := !(include_dirs || dirs_only)
+  // File type filtering.
+  file_type := c.String("type")
 
   // Allow the result to print something before files are walked.
   result.beforeResults()
@@ -43,7 +47,7 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
       defer wg.Done()
 
       for fileData := range path_channel {
-        path := fileData.Path
+        file_path := fileData.Path
         is_dir := fileData.Info.IsDir()
 
         // Determine how to deal with dirs based on any flags.
@@ -59,18 +63,23 @@ func outputResults(base_path string, result Result, matcher FileMatcher, c *cli.
           continue
         }
 
+        // Check the file type if needed.
+        if (file_type != "") && (strings.TrimPrefix(path.Ext(file_path), ".") != file_type) {
+          continue
+        }
+
         // If this is a full path match use the path as-is. Otherwise use the file
         // name only (default).
         if full_path_match {
-          match_path = path
+          match_path = file_path
         } else {
-          match_path = filepath.Base(path);
+          match_path = filepath.Base(file_path);
         }
 
         matched := matcher.match(match_path)
 
         if matched != invert {
-          result.eachResult(path)
+          result.eachResult(file_path)
         }
       }
     }()
